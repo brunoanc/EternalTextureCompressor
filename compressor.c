@@ -12,74 +12,37 @@
 #include <dlfcn.h>
 #endif
 
+// Oodle typedef
 typedef uint64_t OodLZ_CompressFunc(
     int32_t codec, uint8_t *src_buf, size_t src_len, uint8_t *dst_buf, int32_t level,
     void *opts, size_t offs, size_t unused, void *scratch, size_t scratch_size);
 
-enum OodleCompressionLevel
-{
-    NoCompression,
-    SuperFast,
-    VeryFast,
-    Fast,
-    Normal,
-    Optimal1,
-    Optimal2,
-    Optimal3,
-    Optimal4,
-    Optimal5
-};
-
-enum OodleFormat
-{
-    LZH,
-    LZHLW,
-    LZNIB,
-    NoFormat,
-    LZB16,
-    LZBLW,
-    LZA,
-    LZNA,
-    Kraken,
-    Mermaid,
-    BitKnit,
-    Selkie,
-    Akkorokamui
-};
- 
+// Oodle function pointer
 OodLZ_CompressFunc *OodLZ_Compress;
 
 #ifdef _WIN32
+// Check if the process is running through a terminal
 bool check_terminal(void)
 {
-    DWORD *buffer = malloc(sizeof(DWORD));
-
-    if (!buffer)
-        return false;
-
-    DWORD count = GetConsoleProcessList(buffer, 1);
-    free(buffer);
-
-    if (count == 1) {
-        return false;
-    }
-    else {
-        return true;
-    }
+    DWORD buffer[1];
+    return GetConsoleProcessList(buffer, 1) > 1;
 }
 
+// Display the 'Press any key to exit...' message
 void press_any_key(void)
 {
     if (check_terminal())
         return;
 
     printf("\nPress any key to exit...\n");
-    getch();
+    _getch();
 }
 #endif
 
+// Main function
 int main(int argc, char **argv)
 {
+    // Display help
     if (argc == 1) {
         printf("EternalTextureCompressor v1.0 by PowerBall253 :)\n\n");
         printf("Usage:\n");
@@ -88,9 +51,11 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    uint8_t magic[] = { 0x44, 0x49, 0x56, 0x49, 0x4E, 0x49, 0x54, 0x59 };
+    // DIVINITY magic
+    const uint8_t magic[] = { 0x44, 0x49, 0x56, 0x49, 0x4E, 0x49, 0x54, 0x59 };
 
 #ifdef _WIN32
+    // Load oodle dll
     HMODULE oodle = LoadLibraryA("./oo2core_8_win64.dll");
     
     if (!oodle) {
@@ -107,6 +72,7 @@ int main(int argc, char **argv)
         return 1;
     }
 #else
+    // Load linoodle lib
     void *oodle = dlopen("./liblinoodle.so", RTLD_LAZY);
 
     if (!oodle) {
@@ -125,6 +91,7 @@ int main(int argc, char **argv)
     int successes = 0;
 
     for (int i = 1; i < argc; i++) {
+        // Read texture file into memory
         FILE *texture_file = fopen(argv[i], "rb");
 
         if (!texture_file) {
@@ -145,16 +112,18 @@ int main(int argc, char **argv)
 
         fclose(texture_file);
 
+        // Compress texture with oodle
         size_t enc_len = dec_len + 274 * ((dec_len + 0x3FFFF) / 0x40000);
         uint8_t *enc_bytes = malloc(enc_len * sizeof(uint8_t));
 
-        enc_len = OodLZ_Compress(Kraken, dec_bytes, dec_len, enc_bytes, Normal, NULL, 0, 0, NULL, 0);
+        enc_len = OodLZ_Compress(8, dec_bytes, dec_len, enc_bytes, 4, NULL, 0, 0, NULL, 0);
 
         if (enc_len <= 0) {
             fprintf(stderr, "ERROR: Failed to compress %s!\n", argv[i]);
             continue;
         }
 
+        // Write new compressed file
         texture_file = fopen(argv[i], "wb");
     
         fseek(texture_file, 0, SEEK_SET);
