@@ -70,7 +70,7 @@ int main(int argc, char **argv)
         size_t enc_len = dec_len + 274 * ((dec_len + 0x3FFFF) / 0x40000);
         uint8_t *enc_bytes = malloc(enc_len * sizeof(uint8_t));
 
-        enc_len = OodLZ_Compress(8, dec_bytes, dec_len, enc_bytes, 4, NULL, 0, 0, NULL, 0);
+        enc_len = OodleLZ_Compress(8, dec_bytes, dec_len, enc_bytes, 4, NULL, 0, 0, NULL, 0);
 
         if (enc_len <= 0) {
             fprintf(stderr, "ERROR: Failed to compress %s!\n", argv[i]);

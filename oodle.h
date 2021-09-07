@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-typedef struct __attribute__((__packed__)) OodleLZ_CompressOptions
+typedef struct __attribute__((__packed__))
 {
     uint32_t unused_was_verbosity;
     int32_t min_match_len;
@@ -32,7 +32,7 @@ typedef struct __attribute__((__packed__)) OodleLZ_CompressOptions
 #endif
 
 intptr_t LINKAGE OodleLZ_Compress(int compressor, const void *raw_buf, intptr_t raw_len, void *comp_buf, int level,
-    const OodleLZ_CompressOptions *p_options = NULL, const void *dictionary_base = NULL, const void *lrm = NULL,
-    void *scratch_mem = NULL, intptr_t scratch_size = 0);
+    const OodleLZ_CompressOptions *p_options, const void *dictionary_base, const void *lrm, void *scratch_mem,
+    intptr_t scratch_size);
 
 #endif
