@@ -27,17 +27,15 @@ jobs:
           token: ${{secrets.ACCESS_TOKEN}}
           path: lib
 
-      - name: Set up MinGW
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          platform: x64
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
 
       - name: cd to workspace
         run: cd ${{github.workspace}}
 
       - name: Configure CMake
         run: |
-          cmake -B build -G 'MSYS Makefiles'
+          cmake -B build -T clangcl
 
       - name: Build
         run: cmake --build build --config ${{env.BUILD_TYPE}}
