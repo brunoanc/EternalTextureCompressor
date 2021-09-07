@@ -1,24 +1,12 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include "oodle.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <conio.h>
-#else
-#include <unistd.h>
-#include <dlfcn.h>
 #endif
-
-// Oodle typedef
-typedef uint64_t OodLZ_CompressFunc(
-    int32_t codec, uint8_t *src_buf, size_t src_len, uint8_t *dst_buf, int32_t level,
-    void *opts, size_t offs, size_t unused, void *scratch, size_t scratch_size);
-
-// Oodle function pointer
-OodLZ_CompressFunc *OodLZ_Compress;
 
 #ifdef _WIN32
 // Check if the process is running through a terminal
@@ -53,40 +41,6 @@ int main(int argc, char **argv)
 
     // DIVINITY magic
     const uint8_t magic[] = { 0x44, 0x49, 0x56, 0x49, 0x4E, 0x49, 0x54, 0x59 };
-
-#ifdef _WIN32
-    // Load oodle dll
-    HMODULE oodle = LoadLibraryA("./oo2core_8_win64.dll");
-    
-    if (!oodle) {
-        fprintf(stderr, "ERROR: Failed to load oo2core_8_win64.dll - is the dll in the same directory as this executable?\n");
-        press_any_key();
-        return 1;
-    }
-
-    OodLZ_Compress = (OodLZ_CompressFunc*)GetProcAddress(oodle, "OodleLZ_Compress");
-
-    if (!OodLZ_Compress) {
-        fprintf(stderr, "ERROR: Failed to load OodleLZ_Compress function from oo2core_8_win64.dll - corrupted dll?\n");
-        press_any_key();
-        return 1;
-    }
-#else
-    // Load linoodle lib
-    void *oodle = dlopen("./liblinoodle.so", RTLD_LAZY);
-
-    if (!oodle) {
-        fprintf(stderr, "ERROR: Failed to load liblinoodle.so - is the dll in the same directory as this executable?\n");
-        return 1;
-    }
-
-    OodLZ_Compress = dlsym(oodle, "OodleLZ_Compress");
-
-    if (!OodLZ_Compress) {
-        fprintf(stderr, "ERROR: Failed to load OodleLZ_Compress function from oo2core_8_win64.dll - is oo2core_8_win64.dll in the same directory as this executable?\n");
-        return 1;
-    }
-#endif
 
     int successes = 0;
 
