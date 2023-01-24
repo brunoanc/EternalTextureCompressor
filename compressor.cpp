@@ -1,4 +1,5 @@
-#include "oodle.hpp"
+#include <iostream>
+#include "ooz.hpp"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -30,7 +31,7 @@ int main(int argc, char **argv)
 {
     // Display help
     if (argc == 1) {
-        printf("EternalTextureCompressor v1.0 by PowerBall253 :)\n\n");
+        printf("EternalTextureCompressor v2.0 by PowerBall253 :)\n\n");
         printf("Usage:\n");
         printf("EternalResourceExtractor [texture1] [texture2] [...]\n");
         printf("Alternatively, drag and drop files onto this executable.\n");
@@ -64,11 +65,11 @@ int main(int argc, char **argv)
 
         fclose(textureFile);
 
-        // Compress texture with oodle
+        // Compress texture with kraken
         size_t encLen = decLen + 274 * ((decLen + 0x3FFFF) / 0x40000);
         uint8_t *encBytes = new(std::nothrow) uint8_t[encLen];
 
-        encLen = OodleLZ_Compress(8, decBytes, decLen, encBytes, 4);
+        encLen = Kraken_Compress(decBytes, decLen, encBytes, 4);
 
         if (encLen <= 0) {
             std::cerr << "ERROR: Failed to compress " << argv[i] << "!" << std::endl;
