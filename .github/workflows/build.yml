@@ -10,45 +10,32 @@ env:
 
 jobs:
   windows-build:
-    runs-on: windows-2019
-
-    defaults:
-      run:
-        shell: pwsh
+    runs-on: windows-latest
 
     steps:
       - name: Clone repo
-        uses: actions/checkout@v2
-
-      - name: Clone lib repo
-        uses: actions/checkout@v2
-        with:
-          repository: PowerBall253/lib
-          token: ${{secrets.ACCESS_TOKEN}}
-          path: lib
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: cd to workspace
-        run: cd ${{github.workspace}}
+        uses: actions/checkout@v3
 
       - name: Configure CMake
-        run: |
-          cmake -B build -T clangcl
+        run: cmake -B build
 
       - name: Build
         run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-      - name: Rename
-        run: mv build\Release\EternalTextureCompressor.exe EternalTextureCompressor-Windows.exe
-
-      - name: Upload Exe
+      - name: Upload compressor
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{secrets.GITHUB_TOKEN}}
-          file_glob: true
-          file: ${{github.workspace}}/EternalTextureCompressor-Windows.exe
+          asset_name: EternalTextureCompressor-Windows.exe
+          file: ${{github.workspace}}/build/Release/EternalTextureCompressor.exe
+          tag: ${{github.ref}}
+
+      - name: Upload decompressor
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{secrets.GITHUB_TOKEN}}
+          asset_name: EternalTextureDecompressor-Windows.exe
+          file: ${{github.workspace}}/build/Release/EternalTextureDecompressor.exe
           tag: ${{github.ref}}
 
   linux-build:
@@ -56,31 +43,20 @@ jobs:
 
     steps:
       - name: Clone repo
-        uses: actions/checkout@v2
-
-      - name: Clone lib repo
-        uses: actions/checkout@v2
-        with:
-          repository: PowerBall253/lib
-          token: ${{secrets.ACCESS_TOKEN}}
-          path: lib
-
-      - name: cd to workspace
-        run: cd ${{github.workspace}}
+        uses: actions/checkout@v3
 
       - name: Configure CMake
-        run: |
-          export CC=gcc-10
-          export CXX=g++-10
-          cmake -B build
+        run: cmake -B build
 
       - name: Build
         run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-      - name: Rename and strip binary
+      - name: Rename and strip binaries
         run: |
           mv build/EternalTextureCompressor EternalTextureCompressor-Linux
+          mv build/EternalTextureDecompressor EternalTextureDecompressor-Linux
           strip EternalTextureCompressor-Linux
+          strip EternalTextureDecompressor-Linux
 
       - uses: marvinpinto/action-automatic-releases@latest
         with:
@@ -88,40 +64,4 @@ jobs:
           prerelease: false
           files: |
             ${{github.workspace}}/EternalTextureCompressor-Linux
-
-  macos-build:
-    runs-on: macos-10.15
-
-    steps:
-      - name: Clone repo
-        uses: actions/checkout@v2
-
-      - name: Clone lib repo
-        uses: actions/checkout@v2
-        with:
-          repository: PowerBall253/lib
-          token: ${{secrets.ACCESS_TOKEN}}
-          path: lib
-
-      - name: cd to workspace
-        run: cd ${{github.workspace}}
-
-      - name: Configure CMake
-        run: |
-          cmake -B build
-
-      - name: Build
-        run: cmake --build build --config ${{env.BUILD_TYPE}}
-
-      - name: Rename and strip binary
-        run: |
-          mv build/EternalTextureCompressor EternalTextureCompressor-macOS
-          strip EternalTextureCompressor-macOS
-
-      - name: Upload binary
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{secrets.GITHUB_TOKEN}}
-          file_glob: true
-          file: ${{github.workspace}}/EternalTextureCompressor-macOS
-          tag: ${{github.ref}}
+            ${{github.workspace}}/EternalTextureDecompressor-Linux
