@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 {
     // Display help
     if (argc == 1) {
-        printf("EternalTextureCompressor v2.0 by PowerBall253 :)\n\n");
+        printf("EternalTextureCompressor v3.0 by PowerBall253 :)\n\n");
         printf("Usage:\n");
         printf("EternalTextureCompressor [texture1] [texture2] [...]\n");
         printf("Alternatively, drag and drop files onto this executable.\n");

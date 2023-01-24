@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 {
     // Display help
     if (argc == 1) {
-        printf("EternalTextureDecompressor v2.0 by PowerBall253 :)\n\n");
+        printf("EternalTextureDecompressor v3.0 by PowerBall253 :)\n\n");
         printf("Usage:\n");
         printf("EternalTextureDecompressor [compressed1] [compressed2] [...]\n");
         printf("Alternatively, drag and drop files onto this executable.\n");
