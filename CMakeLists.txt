@@ -11,13 +11,17 @@ else()
 endif()
 
 add_executable(EternalTextureCompressor compressor.cpp ooz.hpp)
+add_executable(EternalTextureDecompressor decompressor.cpp ooz.hpp)
 
 if(MSVC)
         target_link_options(EternalTextureCompressor PUBLIC "/LTCG")
+        target_link_options(EternalTextureDecompressor PUBLIC "/LTCG")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         target_link_libraries(EternalTextureCompressor ${CMAKE_SOURCE_DIR}/lib/ooz.lib)
+        target_link_libraries(EternalTextureDecompressor ${CMAKE_SOURCE_DIR}/lib/ooz.lib)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         target_link_libraries(EternalTextureCompressor ${CMAKE_DL_LIBS} ${CMAKE_SOURCE_DIR}/lib/libooz.a)
+        target_link_libraries(EternalTextureDecompressor ${CMAKE_DL_LIBS} ${CMAKE_SOURCE_DIR}/lib/libooz.a)
 endif()

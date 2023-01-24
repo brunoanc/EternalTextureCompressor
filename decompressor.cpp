@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include "ooz.hpp"
 
 #ifdef _WIN32
@@ -6,6 +7,8 @@
 #include <Windows.h>
 #include <conio.h>
 #endif
+
+#define SAFE_SPACE 64
 
 #ifdef _WIN32
 // Check if the process is running through a terminal
@@ -31,9 +34,9 @@ int main(int argc, char **argv)
 {
     // Display help
     if (argc == 1) {
-        printf("EternalTextureCompressor v2.0 by PowerBall253 :)\n\n");
+        printf("EternalTextureDecompressor v2.0 by PowerBall253 :)\n\n");
         printf("Usage:\n");
-        printf("EternalTextureCompressor [texture1] [texture2] [...]\n");
+        printf("EternalTextureDecompressor [compressed1] [compressed2] [...]\n");
         printf("Alternatively, drag and drop files onto this executable.\n");
         return 0;
     }
@@ -44,7 +47,7 @@ int main(int argc, char **argv)
     int successes = 0;
 
     for (int i = 1; i < argc; i++) {
-        // Read texture file into memory
+        // Read compressed file into memory
         FILE *textureFile = fopen(argv[i], "rb");
 
         if (!textureFile) {
@@ -53,26 +56,45 @@ int main(int argc, char **argv)
         }
 
         fseek(textureFile, 0, SEEK_END);
-        size_t decLen = ftell(textureFile);
+        size_t encLen = ftell(textureFile) - 16;
         fseek(textureFile, 0, SEEK_SET);
 
-        uint8_t *decBytes = new(std::nothrow) uint8_t[decLen];
+        // Check for magic
+        uint8_t file_magic[8];
 
-        if (fread(decBytes, 1, decLen, textureFile) != decLen) {
+        if (fread(file_magic, 1, 8, textureFile) != 8) {
+            std::cerr << "ERROR: Failed to read bytes from " << argv[i] << "!" << std::endl;
+            continue;
+        }
+
+        if (std::memcmp(file_magic, magic, 8) != 0) {
+            std::cerr << "ERROR: " << argv[i] << " is not a compressed texture!" << std::endl;
+            continue;
+        }
+
+        // Read decompressed size
+        size_t decLen;
+
+        if (fread(&decLen, 8, 1, textureFile) != 1) {
+            std::cerr << "ERROR: Failed to read bytes from " << argv[i] << "!" << std::endl;
+            continue;
+        }
+
+        uint8_t *encBytes = new(std::nothrow) uint8_t[encLen];
+
+        if (fread(encBytes, 1, encLen, textureFile) != encLen) {
             std::cerr << "ERROR: Failed to read bytes from " << argv[i] << "!" << std::endl;
             continue;
         }
 
         fclose(textureFile);
 
-        // Compress texture with kraken
-        size_t encLen = decLen + 274 * ((decLen + 0x3FFFF) / 0x40000);
-        uint8_t *encBytes = new(std::nothrow) uint8_t[encLen];
+        // Decompress texture with kraken
+        uint8_t *decBytes = new(std::nothrow) uint8_t[decLen + SAFE_SPACE];
+        decLen = Kraken_Decompress(encBytes, encLen, decBytes, decLen);
 
-        encLen = Kraken_Compress(decBytes, decLen, encBytes, 4);
-
-        if (encLen <= 0) {
-            std::cerr << "ERROR: Failed to compress " << argv[i] << "!" << std::endl;
+        if (decLen <= 0) {
+            std::cerr << "ERROR: Failed to decompress " << argv[i] << "!" << std::endl;
             continue;
         }
 
@@ -80,11 +102,9 @@ int main(int argc, char **argv)
         textureFile = fopen(argv[i], "wb");
     
         fseek(textureFile, 0, SEEK_SET);
-        fwrite(magic, 1, sizeof(magic), textureFile);
-        fwrite(&decLen, sizeof(decLen), 1, textureFile);
-        fwrite(encBytes, 1, encLen, textureFile);
+        fwrite(decBytes, 1, decLen, textureFile);
 
-        std::cout << "Compressed " << argv[i] << "." << std::endl;
+        std::cout << "Decompressed " << argv[i] << "." << std::endl;
         successes++;
         fclose(textureFile);
     }
