@@ -91,9 +91,9 @@ int main(int argc, char **argv)
 
         // Decompress texture with kraken
         uint8_t *decBytes = new(std::nothrow) uint8_t[decLen + SAFE_SPACE];
-        decLen = Kraken_Decompress(encBytes, encLen, decBytes, decLen);
+        int result = Kraken_Decompress(encBytes, encLen, decBytes, decLen);
 
-        if (decLen <= 0) {
+        if (result <= 0) {
             std::cerr << "ERROR: Failed to decompress " << argv[i] << "!" << std::endl;
             continue;
         }
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
         textureFile = fopen(argv[i], "wb");
     
         fseek(textureFile, 0, SEEK_SET);
-        fwrite(decBytes, 1, decLen, textureFile);
+        fwrite(decBytes, 1, result, textureFile);
 
         std::cout << "Decompressed " << argv[i] << "." << std::endl;
         successes++;
